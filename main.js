@@ -48,8 +48,8 @@ function follow(story, followerName) {
 function req(story, followerId) {
   var payload = {follower_ids: [followerId]};
   var requestOptions = {
-    host: 'www.pivotaltracker.com',
-    path: '/services/v5/projects/' + story.project_id +
+    host: config.host,
+    path: config.api + '/projects/' + story.project_id +
     '/stories/' + story.id,
     method: 'PUT',
     headers: {
@@ -81,8 +81,8 @@ function req(story, followerId) {
 
 function getStories(projectId) {
   var requestOptions = {
-    host: 'www.pivotaltracker.com',
-    path: '/services/v5/projects/' + projectId +
+    host: config.host,
+    path: config.api + '/projects/' + projectId +
     '/search?fields=stories(stories(follower_ids,project_id,name))&query=owner%3AMA',
     //owner%3AMA%20or%20owner%3AAA',
     method: 'GET',

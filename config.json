@@ -1,6 +1,11 @@
 {
   "apiToken": "apiToken",
   "projectIds": ["projectId"],
+  "host": "www.pivotaltracker.com",
+  "api": "/services/v5",
+  "searchByOwners": [
+    "AB"
+  ],
   "membersByName": {
     "SH": 165643
   },
