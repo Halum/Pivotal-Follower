@@ -5,22 +5,19 @@ var config = require('./config');
 
 var projectIds = config.projectIds;
 
-getProjectStories(projectIds);
+getProjectStories(projectIds)
+  .then(followStories);
 
-function getProjectStories(projectIds) {
-  projectIds.forEach(function (projectId) {
-    getStories(projectId)
-      .then(function (stories) {
-        followStories(stories);
-      })
-      .catch(console.error);
-  });
-}
-
-function followStories(stories) {
-  stories.forEach(function (story) {
-    follow(story, "SH");
-  });
+function buildOwnerQueryString() {
+  let owners = config.searchByOwners;
+  let queryStr = '';
+  for(let i = 0; i < owners.length; ++i) {
+    if(i > 0) {
+      queryStr += '%20' + config.searchCondition + '%20';
+    }
+    queryStr += 'owner%3A' + owners[i];
+  }
+  return queryStr;
 }
 
 function follow(story, followerName) {
@@ -34,18 +31,71 @@ function follow(story, followerName) {
   });
 
   if (!following) {
-    console.log('Please follow', story.name);
-    req(story, config.membersByName[followerName])
+    console.log('Please follow: ', story.name);
+    updateFollower(story, config.membersByName[followerName])
       .then(function (story) {
         console.log("Followed: ", story.name);
       })
       .catch(console.error);
   } else {
-    console.log('Already following', story.name);
+    console.log('Following: ', story.name);
   }
 }
 
-function req(story, followerId) {
+function followStories(stories) {
+  stories.forEach(function (story) {
+    follow(story, config.follower);
+  });
+}
+
+function getStories(projectId) {
+  var requestOptions = {
+    host: config.host,
+    path: config.api + '/projects/' + projectId +
+    '/search?fields=stories(stories(follower_ids,project_id,name))&query=' + buildOwnerQueryString(),
+    method: 'GET',
+    headers: {
+      'X-TrackerToken': config.apiToken
+    }
+  };
+
+  return new Promise(function (resolve, reject) {
+    var data = '';
+    var req = Https.request(requestOptions, function (res) {
+      res.setEncoding('utf8');
+
+
+      res.on('data', function (chunk) {
+        data += chunk;
+      });
+
+      res.on('end', function () {
+        resolve(JSON.parse(data).stories.stories);
+      });
+    });
+    req.end();
+
+    req.on('err', reject);
+  });
+}
+
+function getProjectStories(projectIds) {
+  let promises = [];
+  projectIds.forEach(function (projectId) {
+    promises.push(getStories(projectId));
+  });
+
+  return Promise.all(promises)
+    .then(function (storiesArray2d) {
+      let allStories = [];
+      storiesArray2d.forEach(function (stories) {
+        allStories = allStories.concat(stories);
+      });
+      return allStories;
+    })
+}
+
+function updateFollower(story, followerId) {
   var payload = {follower_ids: [followerId]};
   var requestOptions = {
     host: config.host,
@@ -75,38 +125,5 @@ function req(story, followerId) {
 
     req.on('err', reject);
     req.end(JSON.stringify(payload));
-  });
-}
-
-
-function getStories(projectId) {
-  var requestOptions = {
-    host: config.host,
-    path: config.api + '/projects/' + projectId +
-    '/search?fields=stories(stories(follower_ids,project_id,name))&query=owner%3AMA',
-    //owner%3AMA%20or%20owner%3AAA',
-    method: 'GET',
-    headers: {
-      'X-TrackerToken': config.apiToken
-    }
-  };
-
-  return new Promise(function (resolve, reject) {
-    var data = '';
-    var req = Https.request(requestOptions, function (res) {
-      res.setEncoding('utf8');
-
-
-      res.on('data', function (chunk) {
-        data += chunk;
-      });
-
-      res.on('end', function () {
-        resolve(JSON.parse(data).stories.stories);
-      });
-    });
-    req.end();
-
-    req.on('err', reject);
   });
 }

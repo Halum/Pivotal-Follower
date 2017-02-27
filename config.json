@@ -3,9 +3,9 @@
   "projectIds": ["projectId"],
   "host": "www.pivotaltracker.com",
   "api": "/services/v5",
-  "searchByOwners": [
-    "AB"
-  ],
+  "searchByOwners": ["AB"],
+  "searchCondition": "or",
+  "follower": "SH",
   "membersByName": {
     "SH": 165643
   },
