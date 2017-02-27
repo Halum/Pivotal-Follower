@@ -6,7 +6,7 @@
   "searchByOwners": ["AB"],
   "searchCondition": "or",
   "follower": "SH",
-  "membersByName": {
+  "membersByNa": {
     "SH": 165643
   },
   "membersByID": {

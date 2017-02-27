@@ -1,9 +1,9 @@
 'use strict';
 
-var Https = require('https');
-var config = require('./config');
+let Https = require('https');
+let config = require('./config');
 
-var projectIds = config.projectIds;
+let projectIds = config.projectIds;
 
 getProjectStories(projectIds)
   .then(followStories);
@@ -20,21 +20,34 @@ function buildOwnerQueryString() {
   return queryStr;
 }
 
+function containsInValue(obj, value) {
+  for(let key in obj) {
+    if(obj[key] == value) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function follow(story, followerName) {
   let currentFollowers = story.follower_ids;
   let following = false;
 
   currentFollowers.forEach(function (currentFollowerId) {
-    if (config.membersByID[currentFollowerId] == followerName) {
+    if (containsInValue(config.members, currentFollowerId)) {
       following = true;
     }
   });
 
   if (!following) {
     console.log('Please follow: ', story.name);
-    updateFollower(story, config.membersByName[followerName])
-      .then(function (story) {
-        console.log("Followed: ", story.name);
+    updateFollower(story, config.members[followerName])
+      .then(function (updatedStory) {
+        if(updatedStory.name) {
+          console.log("Followed: ", updatedStory.name);
+        } else {
+          console.log("Error ", updatedStory.code, story.name);
+        }
       })
       .catch(console.error);
   } else {
