@@ -1,0 +1,10 @@
+{
+  "apiToken": "apiToken",
+  "projectIds": ["projectId"],
+  "membersByName": {
+    "SH": 165643
+  },
+  "membersByID": {
+    "165643": "SH"
+  }
+}
